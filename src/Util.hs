@@ -6,8 +6,7 @@ module Util where
 
 import Types
 import Data.Reflection (Reifies)
-import Numeric.AD.Internal.Reverse (Reverse, Tape)
-import Numeric.AD.Internal.Reverse (Reverse)
+import Numeric.AD.Internal.Reverse (Reverse(Lift), Reverse, Tape)
 import Numeric.AD
 
 sigmoid :: (Floating a) => a -> a
@@ -34,7 +33,23 @@ msl f truth = (/2) .  foldr ((+) . squaredLoss f truth) 0
                    -> Inputs a -> a
     squaredLoss f truth xs = (f xs - truth xs)**2
 
-gd :: (Floating a, Traversable model) =>
-      (forall s. Reifies s Tape => model (Reverse s a) -> Reverse s a)
-      -> model a -> model a
-gd fn input = snd $ gradWith' (\x x' -> x - 0.1 * x') fn input
+
+
+-- | Gradient descent
+-- | outputs (loss :: a, next :: model a)
+gd :: (Floating a, Ord a, Traversable model) =>
+      (forall s. (Ord a, Reifies s Tape) => model (Reverse s a) -> Reverse s a)
+      -> model a -> (a, model a)
+gd fn input = gradWith' (\x x' -> x - 0.1 * x') fn input
+
+
+
+descend :: (Floating a, Ord a, Traversable model)
+               => (forall a. (Floating a) => model a -> Action a)
+               -> (forall a. (Ord a, Floating a) => IdealAction a)
+               -> (forall a. (Floating a) =>  Loss a)
+               -> [Inputs a]
+               -> model a -> (a, model a)
+
+descend toAction truth lossfunc xss model
+  = gd (\m -> lossfunc (toAction m) truth $ fmap (fmap Lift) xss) model

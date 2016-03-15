@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Lib
        ( module Types
@@ -15,6 +16,7 @@ import Prelude.Unicode
 import System.Random
 import Numeric.AD
 import Debug.SimpleReflect
+import qualified Text.Show.Pretty as Pr
 -- import Test.QuickCheck.Arbitrary
 
 import Data.Reflection (Reifies)
@@ -53,23 +55,6 @@ nand = Perceptron 3 [-2, -2]
 
 -- gradient m toAction ideal loss xss
 
-inTermsOfModel :: Floating a => (forall a. Floating a => model a -> Action a)
-       -> (forall a. Floating a => IdealAction a)
-       -> (forall a. Floating a => Loss a)
-       -> [Inputs a]
-       -> (forall s. Reifies s Tape => model (Reverse s a) -> Reverse s a)
-inTermsOfModel toAction truth lossfunc xss = \m -> lossfunc (toAction m) truth $ fmap (fmap Lift) xss
-
-updateStep :: (Floating a, Traversable model)
-               => (forall a. (Floating a) => model a -> Action a)
-               -> (forall a. (Floating a) => IdealAction a)
-               -> (forall a. (Floating a) =>  Loss a)
-               -> [Inputs a]
-               -> model a -> model a
-
-updateStep toAction truth lossfunc xss model
-  = gd (inTermsOfModel toAction truth lossfunc xss) model
-
 
 
 genGrid :: [Inputs Double]
@@ -78,4 +63,17 @@ genGrid = do
   y <- [0..10]
   return [x - 5, y - 5]
 
-dude = updateStep neuron (neuron nand) msl genGrid (Perceptron 0 [0, 0])
+pp :: (Show a) => a -> IO ()
+pp = putStrLn . Pr.ppShow
+
+
+descendToNand :: [(Double, Perceptron Double)]
+descendToNand = take 1000
+  $ iterate (descend neuron ideal msl genGrid . snd)
+  $ (0, start)
+  where
+    ideal = neuron $ Perceptron 3 [-2, -2]
+    -- ideal [x, y]
+    --   | x > 0 && y > 0 = 0
+    --   | otherwise      = 1
+    start = Perceptron 0 [0, 0]
