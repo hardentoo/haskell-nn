@@ -59,9 +59,9 @@ nand = Perceptron 3 [-2, -2]
 
 genGrid :: [Inputs Double]
 genGrid = do
-  x <- [0..10]
-  y <- [0..10]
-  return [x - 5, y - 5]
+  x <- randomRs (-1, 1) $ mkStdGen 1337
+  y <- randomRs (-1, 1) $ mkStdGen 1338
+  return [x, y]
 
 pp :: (Show a) => a -> IO ()
 pp = putStrLn . Pr.ppShow
@@ -69,11 +69,11 @@ pp = putStrLn . Pr.ppShow
 
 descendToNand :: [(Double, Perceptron Double)]
 descendToNand = take 1000
-  $ iterate (descend neuron ideal msl genGrid . snd)
+  $ iterate (descend neuron ideal msl 0.1 (take 100 $ genGrid) . snd)
   $ (0, start)
   where
     ideal = neuron $ Perceptron 3 [-2, -2]
-    -- ideal [x, y]
-    --   | x > 0 && y > 0 = 0
-    --   | otherwise      = 1
     start = Perceptron 0 [0, 0]
+
+
+-- TODO: plot

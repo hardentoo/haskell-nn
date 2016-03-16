@@ -1,6 +1,8 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 
 module Util where
 
@@ -38,18 +40,21 @@ msl f truth = (/2) .  foldr ((+) . squaredLoss f truth) 0
 -- | Gradient descent
 -- | outputs (loss :: a, next :: model a)
 gd :: (Floating a, Ord a, Traversable model) =>
-      (forall s. (Ord a, Reifies s Tape) => model (Reverse s a) -> Reverse s a)
-      -> model a -> (a, model a)
-gd fn input = gradWith' (\x x' -> x - 0.1 * x') fn input
+      (forall a. (Floating a) =>  a)
+      -> (forall s. (Ord a, Reifies s Tape) => model (Reverse s a) -> Reverse s a)
+      -> model a
+      -> (a, model a)
+gd γ fn input = gradWith' (\x x' -> x - γ * x') fn input
 
 
 
 descend :: (Floating a, Ord a, Traversable model)
-               => (forall a. (Floating a) => model a -> Action a)
-               -> (forall a. (Ord a, Floating a) => IdealAction a)
-               -> (forall a. (Floating a) =>  Loss a)
-               -> [Inputs a]
-               -> model a -> (a, model a)
+           => (forall a. (Floating a) => model a -> Action a)
+           -> (forall a. (Ord a, Floating a) => IdealAction a)
+           -> (forall a. (Floating a) =>  Loss a)
+           -> (forall a. (Floating a) => a)
+           -> [Inputs a]
+           -> model a -> (a, model a)
 
-descend toAction truth lossfunc xss model
-  = gd (\m -> lossfunc (toAction m) truth $ fmap (fmap Lift) xss) model
+descend toAction truth lossfunc γ xss model
+  = gd γ (\m -> lossfunc (toAction m) truth $ fmap (fmap Lift) xss) model
