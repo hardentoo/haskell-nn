@@ -21,8 +21,11 @@ library
                      , simple-reflect
                      , base-unicode-symbols
                      , reflection
+                     , binary
+                     , bytestring
                      , random
                      , pretty-show
+                     , split
   default-language:    Haskell2010
 
 executable mnist-exe

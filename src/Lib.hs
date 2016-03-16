@@ -17,15 +17,15 @@ import System.Random
 import Numeric.AD
 import Debug.SimpleReflect
 import qualified Text.Show.Pretty as Pr
--- import Test.QuickCheck.Arbitrary
+import Unsafe.Coerce
 
 import Data.Reflection (Reifies)
-import Numeric.AD.Internal.Reverse (Reverse(Lift), Reverse, Tape)
+import Numeric.AD.Internal.Reverse (Reverse(Lift), primal,  Reverse, Tape)
 
 
 import Types
 import Util
-
+import Mnist
 
 
 data Perceptron a = Perceptron { pBias :: a
@@ -35,6 +35,10 @@ data Perceptron a = Perceptron { pBias :: a
 
 instance Functor Perceptron where
   fmap f (Perceptron b ws) = Perceptron (f b) (f <$> ws)
+
+
+initPerceptron :: (Random a, Floating a) => StdGen -> Int -> Perceptron a
+initPerceptron seed dimensions = Perceptron 0 $ take dimensions $ randomRs (-1, 1) seed
 
 
 
@@ -48,19 +52,17 @@ nand :: (Floating a) => Perceptron a
 nand = Perceptron 3 [-2, -2]
 
 
-
--- update' :: (Floating a) => a -> a -> a -> a
--- update' γ old deriv = old - γ *  deriv
-
-
--- gradient m toAction ideal loss xss
-
-
-
 genGrid :: [Inputs Double]
 genGrid = do
-  x <- randomRs (-1, 1) $ mkStdGen 1337
-  y <- randomRs (-1, 1) $ mkStdGen 1338
+  x <- [0..10]
+  y <- [0..10]
+  return $ linlin (0, 10) (-1, 1) <$> [x, y]
+
+genRand :: [Inputs Double]
+genRand = take 100 $ do
+  let n = 1
+  x <- randomRs (-1 * n, n) $ mkStdGen 1337
+  y <- randomRs (-1 * n, n) $ mkStdGen 1338
   return [x, y]
 
 pp :: (Show a) => a -> IO ()
@@ -69,11 +71,9 @@ pp = putStrLn . Pr.ppShow
 
 descendToNand :: [(Double, Perceptron Double)]
 descendToNand = take 1000
-  $ iterate (descend neuron ideal msl 0.1 (take 100 $ genGrid) . snd)
+  $ iterate (descend neuron (fmap ideal myData) msl 0.1 myData . snd)
   $ (0, start)
   where
+    myData = genRand
     ideal = neuron $ Perceptron 3 [-2, -2]
-    start = Perceptron 0 [0, 0]
-
-
--- TODO: plot
+    start = initPerceptron (mkStdGen 1339) 2

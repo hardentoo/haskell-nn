@@ -1,48 +1,0 @@
-
-./Setup.hs,15
-main main1,2
-
-./src/Types.hs,234
-module Types Types2,3
-type Weights Weights5,6
-type Weights a a5,6
-type Inputs Inputs6,7
-type Action Action8,9
-type IdealAction IdealAction9,10
-type Loss Loss11,12
-type Update Update18,19
-type Update model model18,19
-
-./src/Util.hs,170
-module Util Util0,1
-sigmoid sigmoid4,5
-sigmoid sigmoid5,6
-sigmoid' sigmoid'7,8
-sigmoid' sigmoid'8,9
-dot dot11,12
-dot dot12,13
-msl msl18,19
-msl msl19,20
-
-./src/Lib.hs,375
-module LibLib5,6
-data Perceptron Perceptron22,23
-data Perceptron a = Perceptron Perceptron22,23
-data Perceptron a = Perceptron { pBias pBias22,23
-                               , pWeights pWeights23,24
-instance instance27,28
-perceptron perceptron34,35
-perceptron perceptron35,36
-nand nand38,39
-nand nand39,40
-descend descend49,50
-descend descend50,51
-
-./test/Spec.hs,30
-main main4,5
-main main5,6
-
-./app/Main.hs,52
-module Main Main2,3
-main main6,7
-main main7,8
