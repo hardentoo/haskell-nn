@@ -2,6 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 
 module Util where
@@ -34,36 +35,73 @@ dot as bs
 
 
 -- | Evaluate cost on a dataset
-msl :: (Floating a) => Loss a
-msl f yss xss = (/2) $  sum $ zipWith (squaredLoss f) yss xss
+meanSquareLoss :: (Floating a) ⇒ Loss a
+meanSquareLoss f yss xss = (/2) $  sum $ zipWith (squaredLoss f) yss xss
   where
     -- | Per input cost
     squaredLoss :: (Floating a)
                    => Action a
                    -> Output a
-                   -> Inputs a -> a
+                   -> Input a -> a
     squaredLoss f y xs = (f xs - y)**2
 
 
 
 -- | Gradient descent
 -- | outputs (loss :: a, next :: model a)
-gd :: (Floating a, Ord a, Traversable model) =>
-      (forall a. (Floating a) =>  a)
-      -> (forall s. (Ord a, Reifies s Tape) => model (Reverse s a) -> Reverse s a)
-      -> model a
-      -> (a, model a)
-gd γ fn input = gradWith' (\x x' -> x - γ * x') fn input
+gd :: (Floating a, Ord a, Traversable model)
+
+      ⇒ (∀ b.
+         (Floating a) ⇒  a)
+
+      → (∀ s.
+         (Ord a, Reifies s Tape) ⇒ model (Reverse s a) → Reverse s a)
+
+      → model a
+
+      → (a, model a)
+
+gd γ fn input = gradWith' (\x x' → x - γ * x') fn input
 
 
 
 descend :: (Floating a, Ord a, Traversable model)
-           => (forall a. (Floating a) => model a -> Action a)
-           -> [Output a]
-           -> (forall a. (Floating a) =>  Loss a)
-           -> (forall a. (Floating a) => a)
-           -> [Inputs a]
-           -> model a -> (a, model a)
+
+           => (∀ b.
+               (Floating b) ⇒ model b -> Action b) -- toAction
+
+           -> [Output a]                           -- truth
+
+           -> (∀ b.
+               (Floating b) ⇒  Loss b)             -- lossFunc
+
+           -> (∀ b.
+               (Floating b) ⇒ b)                   -- γ (learning rate)
+
+           -> [Input a]                            -- inputs
+
+           -> model a -> (a, model a)              -- model
 
 descend toAction truth lossfunc γ xss model
   = gd γ (\m -> lossfunc (toAction m) (Lift <$> truth) $ fmap (fmap Lift) xss) model
+
+
+-- stochasticDescend :: (Floating a, Ord a, Traversable model)
+
+--            => (∀ a.
+--                (Floating a) ⇒ model a -> Action a)
+
+--            -> [Output a]
+
+--            -> (∀ a.
+--                (Floating a) ⇒  Loss a)
+
+--            -> (∀ a.
+--                (Floating a) ⇒ a)
+
+--            -> [[Input a]] -- Batches!
+
+--            -> model a -> (a, model a)
+
+-- stochasticDescend toAction truth lossfunc γ batches model
+--   = gd γ (\m -> lossfunc (toAction m) (Lift <$> truth) $ fmap (fmap Lift) xss) model

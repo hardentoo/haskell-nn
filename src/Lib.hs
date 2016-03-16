@@ -52,28 +52,60 @@ nand :: (Floating a) => Perceptron a
 nand = Perceptron 3 [-2, -2]
 
 
-genGrid :: [Inputs Double]
+genGrid :: [Input Double]
 genGrid = do
   x <- [0..10]
   y <- [0..10]
   return $ linlin (0, 10) (-1, 1) <$> [x, y]
 
-genRand :: [Inputs Double]
-genRand = take 100 $ do
+genRand :: [Input Double]
+genRand = do
   let n = 1
   x <- randomRs (-1 * n, n) $ mkStdGen 1337
   y <- randomRs (-1 * n, n) $ mkStdGen 1338
   return [x, y]
+
+genRandBatches :: [[Input Double]]
+genRandBatches = do
+  let numBatches = 1000
+  seed <- [0..numBatches]
+
+  return $ take 100 $ do
+    let n = 1
+    x <- randomRs (-1 * n, n) $ mkStdGen seed
+    y <- randomRs (-1 * n, n) $ mkStdGen seed
+    return [x, y]
 
 pp :: (Show a) => a -> IO ()
 pp = putStrLn . Pr.ppShow
 
 
 descendToNand :: [(Double, Perceptron Double)]
-descendToNand = take 1000
-  $ iterate (descend neuron (fmap ideal myData) msl 0.1 myData . snd)
+descendToNand = take iterations
+  $ iterate (descend neuron (fmap ideal myData) meanSquareLoss 0.1 myData . snd)
   $ (0, start)
   where
-    myData = genRand
+    iterations = 1000
+    myData = take 100 $ genRand
+    ideal = neuron $ Perceptron 3 [-2, -2]
+    start = initPerceptron (mkStdGen 1339) 2
+
+stochasticDescendToNand :: [(Double, Perceptron Double)]
+stochasticDescendToNand = take iterations $ map (\(score, model, _) -> (score, model))
+  $ iterate fn (0, start, batches)
+  where
+    fn :: (Double, Perceptron Double, [Batch (Input Double)])
+          -> (Double, Perceptron Double, [Batch (Input Double)])
+    fn (_, model, []) = error "should not be empty"
+    fn (_, model, batch:restOfBatches) =
+      let
+        (score, nextModel) = descend neuron (fmap ideal batch) meanSquareLoss 0.1 batch model
+      in
+        case restOfBatches of
+          [] -> (score, nextModel, batches)
+          otherwise -> (score, nextModel, restOfBatches)
+
+    iterations = 1000
+    batches = genRandBatches
     ideal = neuron $ Perceptron 3 [-2, -2]
     start = initPerceptron (mkStdGen 1339) 2
