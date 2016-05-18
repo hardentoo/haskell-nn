@@ -1,7 +1,15 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration.html
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-4.1
+resolver: lts-5.4
+# resolver: ghc-8.0.0.20160421
+# compiler: ghc-8.0.0.20160421
+# setup-info:
+#   ghc:
+#     linux64:
+#       8.0.0.20160421:
+#         url: "http://downloads.haskell.org/~ghc/8.0.1-rc4/ghc-8.0.0.20160421-x86_64-deb8-linux.tar.xz"
+
 
 # Local packages, usually specified by relative directory name
 packages:

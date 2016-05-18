@@ -26,6 +26,9 @@ library
                      , random
                      , pretty-show
                      , split
+                     , mtl
+                     , data-reify
+                     , containers
   default-language:    Haskell2010
 
 executable mnist-exe

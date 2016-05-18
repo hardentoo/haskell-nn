@@ -12,6 +12,7 @@ import Data.Reflection (Reifies)
 import Numeric.AD.Internal.Reverse (Reverse(Lift), Reverse, Tape)
 import Numeric.AD
 import qualified Text.Show.Pretty as Pr
+import System.Random
 
 
 type Vector a = [a]
@@ -40,9 +41,10 @@ type Loss a = a
 
 
 -- | Models have an action
-class (Traversable m, Foldable m)
+class (Traversable m)
       ⇒ Model m where
   toAction ∷ (Floating a) ⇒ m a → Action a
+  randomizeModel ∷ (Random a, Floating a) ⇒ StdGen → m a → m a -- We use randomize instead of randomGeneration to preserve the shapes.
 
 
 

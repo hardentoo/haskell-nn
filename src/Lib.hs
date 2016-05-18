@@ -4,10 +4,11 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module Lib
-       ( module Util
-       , module Lib
-       ) where
+module Lib where
+       -- ( module Util
+       -- , module Lib
+       -- , module MLP
+       -- ) where
 
 import System.Random
 
@@ -16,6 +17,7 @@ import System.Random
 import Perceptron
 import Util
 import Gen
+import Network
 
 
 
@@ -31,7 +33,7 @@ gradientDescentToNand = iterate step (0, start)
 
     batch = take 100 testRand
     ideal = toAction $ Perceptron 3 [-2, -2]
-    start = initPerceptron (mkStdGen 1339) 2
+    start = randomizeModel (mkStdGen 1339) $ Perceptron 0 [0, 0]
 
 -- | by the Law of Large Numbers, sampling with replacement (Binomial distribution) converges to sampling without replacement (Poisson distribution?)
 
@@ -51,4 +53,4 @@ stochasticGradientDescentToNand = map (\(score, model, _) -> (score, model))
     batches = testRandBatches batchSize
 
     ideal = toAction $ Perceptron 3 [-2, -2]
-    start = initPerceptron (mkStdGen 1339) 2
+    start = randomizeModel (mkStdGen 1339) $ Perceptron 0 [0, 0]

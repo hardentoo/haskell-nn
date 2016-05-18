@@ -4,8 +4,9 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, ad, base, base-unicode-symbols, QuickCheck
-      , random, reflection, simple-reflect, stdenv
+  f = { mkDerivation, ad, base, base-unicode-symbols, binary
+      , bytestring, containers, data-reify, mtl, pretty-show, QuickCheck
+      , random, reflection, simple-reflect, split, stdenv
       }:
       mkDerivation {
         pname = "mnist";
@@ -14,7 +15,8 @@ let
         isLibrary = true;
         isExecutable = true;
         libraryHaskellDepends = [
-          ad base base-unicode-symbols random reflection simple-reflect
+          ad base base-unicode-symbols binary bytestring containers
+          data-reify mtl pretty-show random reflection simple-reflect split
         ];
         executableHaskellDepends = [ base ];
         testHaskellDepends = [ base QuickCheck ];
